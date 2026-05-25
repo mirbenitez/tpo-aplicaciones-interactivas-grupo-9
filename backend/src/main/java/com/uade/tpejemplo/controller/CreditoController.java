@@ -23,6 +23,12 @@ public class CreditoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creditoService.crear(request));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<CreditoResponse> actualizar(@PathVariable Long id,
+                                                     @Valid @RequestBody CreditoRequest request) {
+        return ResponseEntity.ok(creditoService.actualizar(id, request));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CreditoResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(creditoService.buscarPorId(id));
@@ -31,5 +37,11 @@ public class CreditoController {
     @GetMapping("/cliente/{dni}")
     public ResponseEntity<List<CreditoResponse>> listarPorCliente(@PathVariable String dni) {
         return ResponseEntity.ok(creditoService.listarPorCliente(dni));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        creditoService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

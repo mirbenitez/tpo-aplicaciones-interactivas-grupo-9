@@ -9,5 +9,9 @@ public interface CobranzaService {
 
     CobranzaResponse registrar(CobranzaRequest request);
 
+    CobranzaResponse actualizar(Long id, CobranzaRequest request);
+
     List<CobranzaResponse> listarPorCredito(Long idCredito);
+
+    void eliminar(Long id);
 }

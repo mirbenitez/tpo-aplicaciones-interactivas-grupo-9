@@ -1,181 +1,121 @@
-# TPO Aplicaciones Interactivas — Entrega 1
+# TPO Aplicaciones Interactivas — Entrega 2
 
 ## Módulo elegido
 
-Se implementó el módulo **Sistema de etiquetas para clientes**, pedido por la cátedra para clasificar clientes mediante etiquetas y así permitir análisis o segmentación. Este módulo se agregó sobre el proyecto base provisto por el profesor, manteniendo la arquitectura existente y trabajando solo con lo que entra en la **Entrega 1**: backend, persistencia con JPA, seguridad con JWT, validaciones y manejo básico de errores.
+Se implementó el módulo **Sistema de etiquetas para clientes**, pedido por la cátedra para clasificar clientes mediante etiquetas y así permitir análisis o segmentación. La Entrega 1 cubrió el backend completo; esta **Entrega 2** se enfoca en el frontend en React que consume ese backend.
 
 ## Objetivo de esta entrega
 
-En esta primera entrega se desarrolló únicamente el **backend** del módulo. El frontend del proyecto base se mantiene dentro del repositorio porque forma parte de la estructura original de la cátedra, pero no es el foco de esta etapa.
+En esta segunda entrega se desarrolló el **frontend** en React del módulo, conectado al backend mediante API REST. La aplicación permite gestionar etiquetas (crear, modificar, eliminar y listar) y administrar las etiquetas asignadas a cada cliente.
 
-## Descripción simple del módulo
+Además, para que todo el frontend quede consistente, se completaron las pantallas de **Créditos** y **Cobranzas** con las operaciones de modificar y eliminar que faltaban, y se agregaron los endpoints `PUT` y `DELETE` correspondientes en el backend.
 
-El sistema permite que un cliente tenga una o varias etiquetas, por ejemplo:
+## Lo nuevo de esta entrega
 
-- VIP
-- Nuevo
-- Moroso
-- Riesgoso
+### Frontend (React) — módulo Etiquetas
 
-Esto sirve para clasificar clientes de forma flexible. Una misma etiqueta puede estar asociada a varios clientes, y un cliente puede tener varias etiquetas.
+- `frontend/src/api/etiquetas.js` — capa HTTP con `fetch` para todos los endpoints de etiquetas
+- `frontend/src/store/slices/etiquetasSlice.js` — slice de Redux Toolkit con `createAsyncThunk` para cada operación
+- `frontend/src/pages/Etiquetas.jsx` — pantalla con CRUD completo de etiquetas
+- `frontend/src/pages/ClienteEtiquetas.jsx` — pantalla para asignar y quitar etiquetas a un cliente puntual
 
-## Modelo de datos
+### Frontend — mejoras a módulos existentes
 
-### Entidad Tag
+- `frontend/src/pages/Clientes.jsx` — ahora muestra los chips de etiquetas asignadas a cada cliente
+- `frontend/src/pages/Creditos.jsx` — se agregaron botones de Editar y Eliminar (CRUD completo)
+- `frontend/src/pages/Cobranzas.jsx` — se agregaron botones de Editar y Eliminar (CRUD completo)
+- `frontend/src/components/Navbar.jsx` — link al nuevo módulo de Etiquetas
+- `frontend/src/App.jsx` — nuevas rutas `/etiquetas` y `/clientes/etiquetas` protegidas con `PrivateRoute`
 
-Representa una etiqueta del sistema.
+### Backend — endpoints nuevos
 
-Campos:
-- `id`: identificador de la etiqueta
-- `nombre`: nombre de la etiqueta
+Para soportar el CRUD completo del frontend se agregaron:
 
-### Relación Cliente ↔ Tag
+- `PUT /api/creditos/{id}` — actualizar un crédito existente
+- `DELETE /api/creditos/{id}` — eliminar un crédito
+- `PUT /api/cobranzas/{id}` — actualizar una cobranza existente
+- `DELETE /api/cobranzas/{id}` — eliminar una cobranza
 
-Se modeló una relación **muchos a muchos**:
+Los endpoints del módulo de etiquetas ya estaban implementados en la Entrega 1.
 
-- un cliente puede tener muchas etiquetas
-- una etiqueta puede pertenecer a muchos clientes
+## Cómo levantar el proyecto
 
-Para eso se utiliza la tabla intermedia: `clientes_etiquetas`.
+### Requisitos
 
-### Esquema lógico
+- Java 17+
+- Maven
+- Node.js 18+
 
-```
-Cliente ---< clientes_etiquetas >--- Tag
-```
+### Backend (puerto 8080)
 
-## Estructura importante del backend
-
-### Entidades
-- `Cliente.java`
-- `Tag.java`
-
-### Repositorios
-- `ClienteRepository.java`
-- `TagRepository.java`
-
-### Servicios
-- `TagService.java`
-- `TagServiceImpl.java`
-
-### Controladores
-- `TagController.java`
-- `ClienteTagController.java`
-
-### Validaciones y errores
-- `TagRequest.java`
-- `BusinessException.java`
-- `ResourceNotFoundException.java`
-- `GlobalExceptionHandler.java`
-
-## Cómo funciona el módulo
-
-### 1. Crear una etiqueta
-
-Se envía un `POST /api/etiquetas` con un JSON como este:
-
-```json
-{
-  "nombre": "VIP"
-}
+```bash
+cd backend
+mvn spring-boot:run
 ```
 
-El backend valida que el nombre no esté vacío y que no exista otra etiqueta con el mismo nombre. Si todo está bien, guarda la nueva etiqueta en la base de datos.
+### Frontend (puerto 5173)
 
-### 2. Listar etiquetas
-
-Con `GET /api/etiquetas` se obtienen todas las etiquetas creadas.
-
-### 3. Buscar una etiqueta puntual
-
-Con `GET /api/etiquetas/{id}` se puede obtener una etiqueta específica por su ID.
-
-### 4. Actualizar una etiqueta
-
-Con `PUT /api/etiquetas/{id}` se cambia el nombre de una etiqueta existente.
-
-Ejemplo:
-
-```json
-{
-  "nombre": "Cliente VIP"
-}
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-### 5. Eliminar una etiqueta
+Abrir el navegador en [http://localhost:5173](http://localhost:5173).
 
-Con `DELETE /api/etiquetas/{id}` se borra una etiqueta del sistema. Antes de eliminarla, el backend la desasocia de los clientes que la tengan asignada, para no romper la relación many-to-many.
+## Cómo probar la aplicación
 
-### 6. Asignar etiqueta a cliente
+1. Registrarse en `/register` o iniciar sesión en `/login`.
+2. Ir a **Clientes** y crear al menos un cliente.
+3. Ir a **Etiquetas** y crear algunas (VIP, Moroso, Nuevo, Riesgoso).
+4. Probar editar una y eliminar otra.
+5. Ir a **Etiquetas por cliente** (botón "Gestionar etiquetas" desde la pantalla de Clientes), buscar por DNI y asignar varias etiquetas.
+6. Volver a **Clientes** y verificar que los chips de colores aparecen en la tabla.
+7. En **Créditos** y **Cobranzas** probar crear, modificar y eliminar registros.
 
-Con `POST /api/clientes/{dni}/etiquetas/{idEtiqueta}` se crea la relación entre un cliente y una etiqueta.
+## Endpoints REST utilizados por el frontend
 
-### 7. Quitar etiqueta de cliente
+### Módulo Etiquetas
 
-Con `DELETE /api/clientes/{dni}/etiquetas/{idEtiqueta}` se elimina esa relación sin borrar ni al cliente ni a la etiqueta.
+| Operación   | Método | Endpoint                                          |
+|-------------|--------|---------------------------------------------------|
+| Listar      | GET    | `/api/etiquetas`                                  |
+| Buscar      | GET    | `/api/etiquetas/{id}`                             |
+| Crear       | POST   | `/api/etiquetas`                                  |
+| Modificar   | PUT    | `/api/etiquetas/{id}`                             |
+| Eliminar    | DELETE | `/api/etiquetas/{id}`                             |
+| Asignar     | POST   | `/api/clientes/{dni}/etiquetas/{idEtiqueta}`      |
+| Desasignar  | DELETE | `/api/clientes/{dni}/etiquetas/{idEtiqueta}`      |
 
-## Endpoints implementados
+### Otros módulos (CRUD completo)
 
-### CRUD de etiquetas
-- `POST /api/etiquetas` → crear etiqueta
-- `GET /api/etiquetas` → listar etiquetas
-- `GET /api/etiquetas/{id}` → buscar etiqueta por ID
-- `PUT /api/etiquetas/{id}` → actualizar etiqueta
-- `DELETE /api/etiquetas/{id}` → eliminar etiqueta
+| Recurso   | GET                                  | POST              | PUT                       | DELETE                    |
+|-----------|--------------------------------------|-------------------|---------------------------|---------------------------|
+| Clientes  | `/api/clientes`, `/api/clientes/{dni}` | `/api/clientes`   | —                         | —                         |
+| Créditos  | `/api/creditos/cliente/{dni}`, `/api/creditos/{id}` | `/api/creditos`   | `/api/creditos/{id}`      | `/api/creditos/{id}`      |
+| Cobranzas | `/api/cobranzas/credito/{idCredito}` | `/api/cobranzas`  | `/api/cobranzas/{id}`     | `/api/cobranzas/{id}`     |
 
-### Operaciones de relación cliente-etiqueta
-- `POST /api/clientes/{dni}/etiquetas/{idEtiqueta}` → asignar etiqueta a cliente
-- `DELETE /api/clientes/{dni}/etiquetas/{idEtiqueta}` → quitar etiqueta de cliente
+## Tecnologías usadas en el frontend
 
-## Validaciones aplicadas
+- **React 19** — librería de UI
+- **React Router v7** — ruteo entre pantallas
+- **Redux Toolkit** + **react-redux** — manejo de estado global
+- **Fetch API** — llamadas HTTP al backend
+- **Vite** — bundler de desarrollo
 
-### Bean Validation
-En `TagRequest` se usa:
+## Requisitos cubiertos de la consigna de la Entrega 2
 
-```java
-@NotBlank(message = "El nombre de la etiqueta es obligatorio")
-```
+- ✅ Desarrollar una interfaz en React
+- ✅ Visualizar información del módulo
+- ✅ Crear registros
+- ✅ Modificar registros
+- ✅ Eliminar registros
+- ✅ Conexión con el backend mediante API REST
+- ✅ React Router (rutas protegidas con `PrivateRoute`)
+- ✅ Llamadas HTTP mediante `fetch` (en `apiClient.js`)
+- ✅ Manejo de errores básicos (capturados por los thunks de Redux y mostrados en pantalla)
+- ✅ Manejo de estados de carga (flag `loading` con textos dinámicos en los botones)
 
-Eso evita crear o actualizar etiquetas con nombre vacío.
+## Seguridad
 
-### Reglas de negocio
-- no se permiten nombres de etiquetas repetidos
-- no se puede operar con clientes inexistentes
-- no se puede operar con etiquetas inexistentes
-
-## Seguridad con JWT
-
-El proyecto mantiene la seguridad base con JWT.
-
-Flujo:
-1. el usuario se registra o inicia sesión
-2. el backend devuelve un token JWT
-3. ese token se envía en la cabecera `Authorization: Bearer <token>`
-4. los endpoints del módulo quedan protegidos como parte del backend autenticado
-
-## Manejo de errores
-
-El proyecto devuelve errores uniformes mediante `GlobalExceptionHandler`.
-
-Errores principales:
-- `ResourceNotFoundException` → cuando no existe cliente o etiqueta
-- `BusinessException` → cuando se intenta repetir una etiqueta o violar una regla de negocio
-- errores de validación con `@Valid`
-
-## Qué entra de la materia en esta entrega
-
-Esta implementación está pensada para la **Entrega 1**, por lo tanto cubre:
-
-- arquitectura backend con Spring Boot
-- persistencia con JPA / Hibernate
-- relaciones entre entidades
-- repositorios
-- servicios REST
-- endpoints CRUD
-- validaciones con Bean Validation
-- autenticación con JWT
-- manejo básico de errores
-
-## Nota sobre el frontend
-
-El proyecto base incluye carpeta `frontend/`, pero en esta entrega no se evalúa el desarrollo frontend. Se deja dentro del repositorio porque forma parte de la estructura original dada por la cátedra.
+Todas las rutas del frontend (excepto `/login` y `/register`) están protegidas mediante el componente `PrivateRoute`, que verifica que haya un usuario autenticado en el store de Redux. El token JWT recibido en el login se guarda en `localStorage` y se envía automáticamente en cada request mediante el wrapper `apiClient.js`.

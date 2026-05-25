@@ -23,8 +23,20 @@ public class CobranzaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(cobranzaService.registrar(request));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<CobranzaResponse> actualizar(@PathVariable Long id,
+                                                      @Valid @RequestBody CobranzaRequest request) {
+        return ResponseEntity.ok(cobranzaService.actualizar(id, request));
+    }
+
     @GetMapping("/credito/{idCredito}")
     public ResponseEntity<List<CobranzaResponse>> listarPorCredito(@PathVariable Long idCredito) {
         return ResponseEntity.ok(cobranzaService.listarPorCredito(idCredito));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        cobranzaService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

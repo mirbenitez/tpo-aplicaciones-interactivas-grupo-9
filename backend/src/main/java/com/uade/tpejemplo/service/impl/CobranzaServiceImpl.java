@@ -49,6 +49,42 @@ public class CobranzaServiceImpl implements CobranzaService {
             .toList();
     }
 
+    @Override
+    public CobranzaResponse actualizar(Long id, CobranzaRequest request) {
+        Cobranza cobranza = cobranzaRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cobranza", "id", id));
+
+        CuotaId nuevaCuotaId = new CuotaId(request.getIdCredito(), request.getIdCuota());
+        Cuota nuevaCuota = cuotaRepository.findById(nuevaCuotaId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Cuota", "idCredito/idCuota", request.getIdCredito() + "/" + request.getIdCuota()
+            ));
+
+        // Si se quiere mover la cobranza a otra cuota, validar que la nueva no esté ya pagada
+        boolean cambiaCuota =
+            !cobranza.getCuota().getId().getIdCredito().equals(request.getIdCredito())
+            || !cobranza.getCuota().getId().getIdCuota().equals(request.getIdCuota());
+
+        if (cambiaCuota && cobranzaRepository.existsByCuotaIdIdCreditoAndCuotaIdIdCuota(
+                request.getIdCredito(), request.getIdCuota())) {
+            throw new BusinessException(
+                "La cuota " + request.getIdCuota() + " del crédito " + request.getIdCredito() + " ya fue pagada"
+            );
+        }
+
+        cobranza.setCuota(nuevaCuota);
+        cobranza.setImporte(request.getImporte());
+        cobranzaRepository.save(cobranza);
+        return toResponse(cobranza);
+    }
+
+    @Override
+    public void eliminar(Long id) {
+        Cobranza cobranza = cobranzaRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cobranza", "id", id));
+        cobranzaRepository.delete(cobranza);
+    }
+
     private CobranzaResponse toResponse(Cobranza cobranza) {
         return new CobranzaResponse(
             cobranza.getId(),
